@@ -6,9 +6,14 @@ const PEOPLE_CSV_PATH = path.join(__dirname, "../data/people.csv");
 
 // Define the schema. This is a Zod construct, not a TypeScript type.
 export const PersonRowSchema = z
-  .tuple([z.string(), z.coerce.number()])
+  .tuple([
+    z.string(),
+    z.coerce.number().refine((val) => !Number.isNaN(val), {
+      message: "Age must be a valid number",
+    }),
+  ])
   .transform((tup) => ({ name: tup[0], age: tup[1] }));
-
+  
 // Define the corresponding TypeScript type for the above schema.
 // Mouse over it in VSCode to see what TypeScript has inferred!
 export type Person = z.infer<typeof PersonRowSchema>;
@@ -22,12 +27,26 @@ test("parseCSV with schema", async () => {
 
   // Check valid rows
   results.data.forEach((person) => {
+    console.log(person);
+    console.log(person.age);
     expect(typeof person.name).toBe("string");
     expect(typeof person.age).toBe("number");
-    expect(Number.isNaN(person.age)).toBe(false); // age should be a valid number
+    expect(Number.isNaN(person.age)).toBe(false); // age should be a valid number not NaN
+    if (Number.isNaN(person.age)) {
+      throw new Error("Age should be a valid number, but got NaN");
+    }
   });
-
 })
+
+// Source GPT4o
+test("parseCSV reports error on invalid data", async () => {
+  const results = await parseCSV<Person>(PEOPLE_CSV_PATH, PersonRowSchema);
+  // Check that errors were reported
+  expect("errors" in results).toBe(true);
+  if (!Array.isArray(results)) {
+    expect(results.errors.length).toBeGreaterThan(0);
+  }
+});
 
 // Test file is not empty
 test("parseCSV reads non-empty file", async () => {

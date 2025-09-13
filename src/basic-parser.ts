@@ -54,6 +54,7 @@ export async function parseCSV<T>(
     let i = 0;
     for await (const line of rl) {
       i += 1;
+      if (i === 1) continue; // Skip header line
       const values = line.split(",").map((v) => v.trim());
       try {
         const parsed = schema.parse(values);

@@ -94,14 +94,31 @@ if (result.success) {
     - Quoted string should be unwrapped properly, like the scenario of including embedded commas and newline inside the quotes.
 
 - #### 2. Random, On-Demand Generation
+    Randomly generate malformed rows (e.g., with missing fields, invalid types, broken quotes) to ensure the parser doesn’t crash and returns informative errors. 
 
 - #### 3. Overall experience, Bugs encountered and resolved
+    This sprint differed from prior programming assignments in a key way: we were allowed to use LLM to assist with development and debugging. In contrast, most past assignments either discouraged or restricted LLM use entirely. This freedom was both exciting and instructive — it encouraged me to compare my own understanding and debugging process with the solutions and suggestions provided by the LLM.
+
+    One thing that surprised me was the behavior of z.coerce.number() in Zod. I expected it to throw an error if a string like "thirty" couldn’t be converted to a number. Instead, it silently coerced it into NaN, which wasn’t immediately caught by my schema. This led to a small that a invalid numeric input would still pass the schema unless I added an explicit .refine() check to ensure the result was not NaN.
+
+
 #### Errors/Bugs:
+    z.coerce.number() cast age "thirty" to NaN
 #### Tests:
+    Test if we received a NaN value.
+    Test if the we throw the error if we meet a invalid number. 
 #### How To…
-
+    Test the NaN field by expect(Number.isNaN(person.age)).toBe(false);
+    Refine schema to not accept NaN and throw error:
+    z.coerce.number().refine((val) => !Number.isNaN(val), {
+      message: "Age must be a valid number",
+    })
 #### Team members and contributions (include cs logins):
+    rzhou52
 
-#### Collaborators (cslogins of anyone you worked with on this project and/or generative AI):
+#### Collaborators (cslogins of anyone you worked with on this project and/or generative AI): 
+    GPT4o
 #### Total estimated time it took to complete project:
+    6h
 #### Link to GitHub Repo:  
+    https://github.com/cs0320-f25/typescript-csv-Bettyyy666.git

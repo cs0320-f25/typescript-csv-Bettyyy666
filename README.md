@@ -87,6 +87,11 @@ if (result.success) {
 ### 1340 Supplement
 
 - #### 1. Correctness
+    - The first row is column tag rather than data.
+    - The order of rows and colummns should be preserved as in the original csv file. 
+    - When we parse schema, the parser should check that each field matches the expected type.
+    - If a row fails to match a schema, the parser report the failure fields to the caller rather than crash the program. 
+    - Quoted string should be unwrapped properly, like the scenario of including embedded commas and newline inside the quotes.
 
 - #### 2. Random, On-Demand Generation
 

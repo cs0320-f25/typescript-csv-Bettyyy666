@@ -56,7 +56,33 @@ In brainstorming enhancements for the CSV parser, my initial ideas focused on fu
 	• Performance benchmarks are included for large file input (>100MB).
 
 
-### Design Choices
+### Design Choices (Supplemental Challenge)
+I choose Stack as my data structure.
+We can represent a stack simply as an array, where the last item is the top of the stack.
+
+```
+import { z } from "zod";
+
+type Stack<T> = {
+  items: T[];
+};
+
+const StringStackSchema = z.object({
+  items: z.array(z.string())
+});
+
+const data = {
+  items: ["Alice", "Bob", "Charlie", "Nim"]
+};
+
+const result = StringStackSchema.safeParse(data);
+if (result.success) {
+  const stack = result.data;
+  // Use stack.items
+} else {
+  console.error(result.error.format());
+}
+```
 
 ### 1340 Supplement
 

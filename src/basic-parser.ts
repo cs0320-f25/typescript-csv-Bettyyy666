@@ -2,14 +2,6 @@ import * as fs from "fs";
 import * as readline from "readline";
 import {z, ZodType, ZodError} from "zod";
 
-// Define the schema. This is a Zod construct, not a TypeScript type.
-export const PersonRowSchema = z.tuple([z.string(), z.coerce.number()])
-                         .transform( tup => ({name: tup[0], age: tup[1]}))
-
-// Define the corresponding TypeScript type for the above schema. 
-// Mouse over it in VSCode to see what TypeScript has inferred!
-export type Person = z.infer<typeof PersonRowSchema>;
-
 // Type of return val
 export type schemaReturn<T> = {
   data: T[];

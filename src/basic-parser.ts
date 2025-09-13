@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as readline from "readline";
-import {z} from "zod";
+import {z, ZodType, ZodError} from "zod";
 
 // Define the schema. This is a Zod construct, not a TypeScript type.
 export const PersonRowSchema = z.tuple([z.string(), z.coerce.number()])
@@ -9,6 +9,16 @@ export const PersonRowSchema = z.tuple([z.string(), z.coerce.number()])
 // Define the corresponding TypeScript type for the above schema. 
 // Mouse over it in VSCode to see what TypeScript has inferred!
 export type Person = z.infer<typeof PersonRowSchema>;
+
+// Type of return val
+export type schemaReturn<T> = {
+  data: T[];
+  errors: {
+    line: number;
+    content: string[];
+    error: string;
+  }[];
+};
 
 
 /**
@@ -22,26 +32,52 @@ export type Person = z.infer<typeof PersonRowSchema>;
  * You shouldn't need to alter them.
  * 
  * @param path The path to the file being loaded.
- * @returns a "promise" to produce a 2-d array of cell values
+ * @param schema Accept a Zod schema as a parameter. 
+ * @returns A promise resolving to an object containing valid data and validation errors, or string[][] if passes undefined
  */
-export async function parseCSV(path: string): Promise<string[][]> {
+export async function parseCSV<T>(
+  path: string,
+  schema?: ZodType<T>
+): Promise<schemaReturn<T> | string[][]> {
   // This initial block of code reads from a file in Node.js. The "rl"
-  // value can be iterated over in a "for" loop. 
+  // variable is a "readline interface" that allows us to read the file
   const fileStream = fs.createReadStream(path);
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity, // handle different line endings
   });
-  
-  // Create an empty array to hold the results
-  let result = []
-  
-  // We add the "await" here because file I/O is asynchronous. 
-  // We need to force TypeScript to _wait_ for a row before moving on. 
-  // More on this in class soon!
-  for await (const line of rl) {
-    const values = line.split(",").map((v) => v.trim());
-    result.push(values)
+
+  if (!schema) {
+    // Fallback to original behavior if no schema is provided (undefined schema)
+    const result: string[][] = [];
+    for await (const line of rl) {
+      const values = line.split(",").map((v) => v.trim());
+      result.push(values);
+    }
+    return result;
   }
-  return result
+  else {
+    const data: T[] = [];
+    const errors: schemaReturn<T>["errors"] = [];
+    let i = 0;
+    for await (const line of rl) {
+      i += 1;
+      const values = line.split(",").map((v) => v.trim());
+      try {
+        const parsed = schema.parse(values);
+        data.push(parsed);
+      } catch (err) {
+        if (err instanceof ZodError) {
+          errors.push({
+            line: i,
+            content: values,
+            error: err.issues.map(e => e.message).join("; ")
+          });
+        } else {
+          throw err; 
+        }
+      }
+    }
+    return { data, errors};
+  }
 }

@@ -3,10 +3,17 @@ import * as path from "path";
 
 const PEOPLE_CSV_PATH = path.join(__dirname, "../data/people.csv");
 
-// Test if the file is not empty
+
+// Test file is not empty
 test("parseCSV reads non-empty file", async () => {
   const results = await parseCSV(PEOPLE_CSV_PATH)
   expect(results.length).toBeGreaterThan(0);
+});
+
+// Check if parser preserves comma inside quotes
+test("parseCSV handles quoted fields with commas", async () => {
+  const results = await parseCSV(PEOPLE_CSV_PATH);
+  expect(results[1]).toEqual(['"Doe, John"', '35']); 
 });
 
 
